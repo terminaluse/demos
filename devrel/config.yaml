@@ -1,0 +1,105 @@
+# Agent Manifest Configuration
+# ---------------------------
+# This file defines how your agent should be built and deployed.
+
+# Build Configuration
+# ------------------
+# The build config defines what gets packaged into your agent's Docker image.
+#
+# When building:
+# 1. All files from include_paths are collected into a build context
+# 2. The context is filtered by dockerignore rules
+# 3. The Dockerfile uses this context to build your agent's image
+# 4. The image is pushed to a registry and used to run your agent
+build:
+  context:
+    # Root directory for the build context
+    root: ../  # Keep this as the default root
+
+    # Paths to include in the Docker build context
+    # Must include your agent's directory (your custom agent code)
+    include_paths:
+      - devrel
+
+    # Path to your agent's Dockerfile
+    # Relative to the root directory
+    dockerfile: devrel/Dockerfile
+
+    # Path to your agent's .dockerignore
+    # Filters unnecessary files from the build context
+    dockerignore: devrel/.dockerignore
+
+
+
+# Agent Configuration
+# -----------------
+agent:
+  # Unique identifier for your agent (namespace/name format)
+  # Example: 'acme-corp/my-agent'
+  name: test/devrel
+
+  # Description of what your agent does
+  description: DevRel intelligence agent that monitors developer sentiment across HN, Reddit, X, and YouTube to surface documentation gaps, pain points, competitor mentions, and resonant content
+
+  # SDK type for agent runtime
+  sdk_type: claude_agent_sdk
+
+  
+
+# Deployment Configuration
+# -----------------------
+# Environment-specific settings for production and preview branches.
+# The CLI resolves which config to use based on the branch being deployed.
+deployment:
+  # Production environment (main branch)
+  production:
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: "250m"
+        memory: "2Gi"
+      limits:
+        cpu: "2"
+        memory: "2Gi"
+    # Task stickiness during version transitions:
+    # - true: Running tasks stay on old version until complete (safer for long-running tasks)
+    # - false: Running tasks migrate immediately to new version (faster rollout)
+    areTasksSticky: false
+
+  # Preview environment (feature branches)
+  preview:
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: "250m"
+        memory: "2Gi"
+      limits:
+        cpu: "2"
+        memory: "2Gi"
+    # Default: false for preview (faster iteration)
+    areTasksSticky: false
+
+
+# Sandbox Configuration (Optional)
+# --------------------------------
+# Configure folders to bake into the agent image and mount at runtime.
+#
+# To use baked mounts:
+# 1. Add a COPY instruction to your Dockerfile to include the folder
+# 2. Reference the path in the image as 'source' below
+# 3. Specify where to mount it in the sandbox as 'target'
+#
+# Example:
+#   sandbox:
+#     mounts:
+#       - source: .claude/skills       # Path in image (relative to WORKDIR or absolute)
+#         target: /root/.claude/skills  # Path in sandbox (must be absolute)
+#         readonly: true                # Optional, defaults to true
+#
+# Note: Baked mounts cannot target system paths (/usr, /bin, /etc, etc.)
+# or exact system folder paths like /root/.claude (use subdirectories instead).
+sandbox:
+  mounts:
+    - source: skills                    # Path in image (relative to agent WORKDIR)
+      target: /root/.claude/skills      # Path in sandbox
+      readonly: true

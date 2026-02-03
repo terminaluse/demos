@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "devrel"
+version = "0.1.0"
+description = "DevRel intelligence agent that monitors developer sentiment across HN, Reddit, X, and YouTube to surface documentation gaps, pain points, competitor mentions, and resonant content"
+requires-python = ">=3.12"
+dependencies = [
+    "terminaluse",
+    "claude-agent-sdk",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+    "isort",
+    "flake8",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["project"]
+
+[tool.black]
+line-length = 88
+target-version = ['py312']
+
+[tool.isort]
+profile = "black"
+line_length = 88
